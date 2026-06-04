@@ -21,7 +21,7 @@ type Handler struct {
 	paste    *services.PasteService
 	store    *store.Store
 	cfg      *config.Config
-	tmpl     *template.Template
+	tmpls    map[string]*template.Template
 }
 
 func New(ps *services.PasteService, s *store.Store, cfg *config.Config) *Handler {
@@ -54,13 +54,23 @@ func New(ps *services.PasteService, s *store.Store, cfg *config.Config) *Handler
 		"add":       func(a, b int) int { return a + b },
 		"sub":       func(a, b int) int { return a - b },
 	}
-	tmpl := template.Must(template.New("").Funcs(funcMap).ParseGlob("internal/handlers/templates/**/*.html"))
-	return &Handler{paste: ps, store: s, cfg: cfg, tmpl: tmpl}
+	tmpls := parseTemplates(funcMap)
+	return &Handler{paste: ps, store: s, cfg: cfg, tmpls: tmpls}
 }
 
 func (h *Handler) render(w http.ResponseWriter, name string, data any) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	h.tmpl.ExecuteTemplate(w, name, data)
+	// name is like "home.html", template key is "home"
+	key := name
+	if idx := len(key) - 5; idx > 0 && key[idx:] == ".html" {
+		key = key[:idx]
+	}
+	t, ok := h.tmpls[key]
+	if !ok {
+		http.Error(w, "template not found: "+name, 500)
+		return
+	}
+	t.ExecuteTemplate(w, name, data)
 }
 
 func (h *Handler) errPage(w http.ResponseWriter, code int, title, msg string) {

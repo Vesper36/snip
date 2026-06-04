@@ -1,4 +1,4 @@
-{{template "base.html" .}}
+{{define "home.html"}}{{template "base.html" .}}{{end}}
 {{define "content"}}
 <div class="hero">
     <h1>Paste. Share. Done.</h1>
@@ -52,7 +52,7 @@
 <div class="features">
     <div class="feature">
         <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
         </div>
         <h3>Auto Expiry</h3>
         <p>Set expiration from 10 minutes to 1 month. Expired pastes are automatically cleaned up.</p>
@@ -73,7 +73,7 @@
     </div>
     <div class="feature">
         <div class="feature-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </div>
         <h3>REST API</h3>
         <p>Full REST API with API tokens for programmatic access. CLI-friendly.</p>
