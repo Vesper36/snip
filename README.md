@@ -127,7 +127,7 @@ services:
   snip:
     build: .
     ports:
-      - "3000:3000"
+      - "53524:53524"
     volumes:
       - snip-data:/app/data
     environment:
