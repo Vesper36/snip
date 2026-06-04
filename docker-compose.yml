@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  snip:
+    build: .
+    container_name: snip
+    ports:
+      - "3000:3000"
+    volumes:
+      - snip-data:/app/data
+    environment:
+      - SNIP_BASE_URL=http://localhost:3000
+      - SNIP_ADMIN_PASSWORD=${SNIP_ADMIN_PASSWORD:-}
+      - SNIP_JWT_SECRET=${SNIP_JWT_SECRET:-change-me}
+    restart: unless-stopped
+
+volumes:
+  snip-data:

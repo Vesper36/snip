@@ -1,0 +1,39 @@
+{{template "base.html" .}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Browse Pastes</h1>
+    <p>{{.Total}} pastes total</p>
+</div>
+<form action="/search" method="GET" class="search-form">
+    <input type="text" name="q" placeholder="Search pastes..." class="input-search">
+    <button type="submit" class="btn-primary">Search</button>
+</form>
+<div class="paste-list">
+    {{range .Pastes}}
+    <a href="/{{.Slug}}" class="paste-item">
+        <div class="paste-item-header">
+            <span class="paste-item-title">{{if .Title}}{{.Title}}{{else}}Untitled{{end}}</span>
+            <span class="badge badge-lang">{{.Language}}</span>
+            {{if .BurnAfterRead}}<span class="badge badge-warn">burn</span>{{end}}
+        </div>
+        <div class="paste-item-meta">
+            <span>{{size .FileSize}}</span>
+            <span>{{.Views}} views</span>
+            <span>{{timeAgo .CreatedAt}}</span>
+            {{if .ExpiresAt}}<span class="text-warn">expires</span>{{end}}
+        </div>
+    </a>
+    {{else}}
+    <div class="empty-state">
+        <p>No pastes yet. <a href="/">Create one!</a></p>
+    </div>
+    {{end}}
+</div>
+{{if or (gt .Page 1) .HasNext}}
+<div class="pagination">
+    {{if gt .Page 1}}<a href="/my?page={{sub .Page 1}}" class="btn-sm">Previous</a>{{end}}
+    <span class="page-info">Page {{.Page}}</span>
+    {{if .HasNext}}<a href="/my?page={{add .Page 1}}" class="btn-sm">Next</a>{{end}}
+</div>
+{{end}}
+{{end}}

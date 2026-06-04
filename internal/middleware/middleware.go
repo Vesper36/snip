@@ -1,0 +1,149 @@
+package middleware
+
+import (
+	"context"
+	"net/http"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/vesper/snip/internal/auth"
+	"github.com/vesper/snip/internal/store"
+)
+
+type ctxKey string
+
+const (
+	CtxClaims   ctxKey = "claims"
+	CtxAPIToken ctxKey = "api_token"
+	CtxClientIP ctxKey = "client_ip"
+)
+
+func ClientIP(r *http.Request) string {
+	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		return strings.TrimSpace(strings.Split(xff, ",")[0])
+	}
+	if xri := r.Header.Get("X-Real-IP"); xri != "" {
+		return xri
+	}
+	host, _, _ := strings.Cut(r.RemoteAddr, ":")
+	return host
+}
+
+func WithClientIP(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), CtxClientIP, ClientIP(r))
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func Security(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		next.ServeHTTP(w, r)
+	})
+}
+
+func RateLimit(max int, window time.Duration) func(http.Handler) http.Handler {
+	type entry struct {
+		n   int
+		at  time.Time
+	}
+	var (
+		mu      sync.Mutex
+		clients = make(map[string]*entry)
+	)
+	go func() {
+		for {
+			time.Sleep(window)
+			mu.Lock()
+			for k, v := range clients {
+				if time.Since(v.at) > window {
+					delete(clients, k)
+				}
+			}
+			mu.Unlock()
+		}
+	}()
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ip := ClientIP(r)
+			mu.Lock()
+			e, ok := clients[ip]
+			if !ok || time.Since(e.at) > window {
+				clients[ip] = &entry{1, time.Now()}
+				mu.Unlock()
+				next.ServeHTTP(w, r)
+				return
+			}
+			if e.n >= max {
+				mu.Unlock()
+				http.Error(w, "rate limit exceeded", http.StatusTooManyRequests)
+				return
+			}
+			e.n++
+			mu.Unlock()
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func JWTAuth(secret string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var raw string
+			if h := r.Header.Get("Authorization"); h != "" {
+				if p := strings.SplitN(h, " ", 2); len(p) == 2 {
+					raw = p[1]
+				}
+			}
+			if raw == "" {
+				if c, err := r.Cookie("snip_token"); err == nil {
+					raw = c.Value
+				}
+			}
+			if raw == "" {
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+			claims, err := auth.ValidateJWT(secret, raw)
+			if err != nil {
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+			ctx := context.WithValue(r.Context(), CtxClaims, claims)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func APITokenAuth(s *store.Store) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var raw string
+			if h := r.Header.Get("Authorization"); h != "" {
+				if p := strings.SplitN(h, " ", 2); len(p) == 2 {
+					raw = p[1]
+				}
+			}
+			if raw == "" {
+				http.Error(w, "api token required", http.StatusUnauthorized)
+				return
+			}
+			t, err := s.GetTokenByHash(store.HashToken(raw))
+			if err != nil || t == nil {
+				http.Error(w, "invalid token", http.StatusUnauthorized)
+				return
+			}
+			if t.ExpiresAt != nil && time.Now().After(*t.ExpiresAt) {
+				http.Error(w, "token expired", http.StatusUnauthorized)
+				return
+			}
+			s.UpdateTokenUsed(t.ID)
+			ctx := context.WithValue(r.Context(), CtxAPIToken, t)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}

@@ -1,0 +1,82 @@
+{{template "base.html" .}}
+{{define "content"}}
+<div class="hero">
+    <h1>Paste. Share. Done.</h1>
+    <p class="subtitle">Self-hosted code sharing with syntax highlighting, encryption, and auto-expiry.</p>
+</div>
+
+<form hx-post="/hx/paste" hx-target="#result" hx-swap="innerHTML" class="paste-form">
+    <div class="form-header">
+        <input type="text" name="title" placeholder="Untitled paste..." class="input-title" autocomplete="off">
+        <select name="language" class="select-lang">
+            <option value="auto">Auto-detect</option>
+            {{range .Languages}}<option value="{{.}}">{{.}}</option>{{end}}
+        </select>
+    </div>
+    <textarea name="content" placeholder="Paste your code here..." class="paste-textarea" rows="16" required autofocus></textarea>
+    <div id="result"></div>
+    <div class="form-options">
+        <div class="option-group">
+            <label>Expires</label>
+            <select name="expires_in" class="select-sm">
+                <option value="never">Never</option>
+                <option value="10m">10 minutes</option>
+                <option value="1h">1 hour</option>
+                <option value="1d">1 day</option>
+                <option value="1w">1 week</option>
+                <option value="1m">1 month</option>
+            </select>
+        </div>
+        <div class="option-group">
+            <label>Password</label>
+            <input type="text" name="password" placeholder="Optional" class="input-sm" autocomplete="off">
+        </div>
+        <div class="option-group">
+            <label>Custom URL</label>
+            <input type="text" name="custom_slug" placeholder="Optional" class="input-sm" autocomplete="off">
+        </div>
+        <div class="option-group">
+            <label>Max views</label>
+            <input type="number" name="max_views" placeholder="Unlimited" class="input-sm" min="1">
+        </div>
+        <div class="option-group checkbox-group">
+            <label class="checkbox-label">
+                <input type="checkbox" name="burn_after_read">
+                <span>Burn after reading</span>
+            </label>
+        </div>
+    </div>
+    <button type="submit" class="btn-primary">Create Snip</button>
+</form>
+
+<div class="features">
+    <div class="feature">
+        <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <h3>Auto Expiry</h3>
+        <p>Set expiration from 10 minutes to 1 month. Expired pastes are automatically cleaned up.</p>
+    </div>
+    <div class="feature">
+        <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3>Password Protection</h3>
+        <p>Protect sensitive pastes with a password. Content is encrypted with bcrypt.</p>
+    </div>
+    <div class="feature">
+        <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <h3>Burn After Reading</h3>
+        <p>Self-destructing pastes that are deleted after being viewed once.</p>
+    </div>
+    <div class="feature">
+        <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        </div>
+        <h3>REST API</h3>
+        <p>Full REST API with API tokens for programmatic access. CLI-friendly.</p>
+    </div>
+</div>
+{{end}}

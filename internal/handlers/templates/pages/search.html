@@ -1,0 +1,31 @@
+{{template "base.html" .}}
+{{define "content"}}
+<div class="page-header">
+    <h1>Search Results</h1>
+    <p>{{len .Pastes}} results for "{{.Query}}"</p>
+</div>
+<form action="/search" method="GET" class="search-form">
+    <input type="text" name="q" value="{{.Query}}" placeholder="Search pastes..." class="input-search" autofocus>
+    <button type="submit" class="btn-primary">Search</button>
+</form>
+<div class="paste-list">
+    {{range .Pastes}}
+    <a href="/{{.Slug}}" class="paste-item">
+        <div class="paste-item-header">
+            <span class="paste-item-title">{{if .Title}}{{.Title}}{{else}}Untitled{{end}}</span>
+            <span class="badge badge-lang">{{.Language}}</span>
+        </div>
+        <div class="paste-item-preview">{{safe (printf "%.200s" .Content)}}</div>
+        <div class="paste-item-meta">
+            <span>{{size .FileSize}}</span>
+            <span>{{.Views}} views</span>
+            <span>{{timeAgo .CreatedAt}}</span>
+        </div>
+    </a>
+    {{else}}
+    <div class="empty-state">
+        <p>No pastes found. Try a different search term.</p>
+    </div>
+    {{end}}
+</div>
+{{end}}

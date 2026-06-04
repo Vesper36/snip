@@ -1,0 +1,9 @@
+{{template "base.html" .}}
+{{define "content"}}
+<div class="error-page">
+    <div class="error-code">{{.Code}}</div>
+    <h1>{{.Title}}</h1>
+    <p>{{.Message}}</p>
+    <a href="/" class="btn-primary">Create New Paste</a>
+</div>
+{{end}}

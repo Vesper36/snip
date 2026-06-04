@@ -1,0 +1,35 @@
+{{define "base.html"}}<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snip - Self-hosted Code Sharing</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="/" class="nav-brand">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6"/><path d="M8 6l-6 6 6 6"/></svg>
+                <span>Snip</span>
+            </a>
+            <div class="nav-links">
+                <a href="/">New</a>
+                <a href="/my">Browse</a>
+                <a href="/settings">Settings</a>
+                <a href="https://github.com/vesper/snip" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </nav>
+    <main class="container">
+        {{template "content" .}}
+    </main>
+    <footer class="footer">
+        <p>Snip - Self-hosted code & file sharing platform</p>
+    </footer>
+    <script>hljs.highlightAll();</script>
+</body>
+</html>{{end}}
