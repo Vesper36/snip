@@ -50,7 +50,7 @@ make build
 make run
 ```
 
-Open http://localhost:3000
+Open http://localhost:53524
 
 ### Docker
 
@@ -73,7 +73,7 @@ Snip provides a REST API for programmatic access.
 ### Create a Paste
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/pastes \
+curl -X POST http://localhost:53524/api/v1/pastes \
   -H "Content-Type: application/json" \
   -d '{
     "content": "fmt.Println(\"Hello, World!\")",
@@ -86,13 +86,13 @@ curl -X POST http://localhost:3000/api/v1/pastes \
 ### Get a Paste
 
 ```bash
-curl http://localhost:3000/api/v1/pastes/{slug}
+curl http://localhost:53524/api/v1/pastes/{slug}
 ```
 
 ### Search
 
 ```bash
-curl http://localhost:3000/api/v1/search?q=hello
+curl http://localhost:53524/api/v1/search?q=hello
 ```
 
 ### Authentication
@@ -100,7 +100,7 @@ curl http://localhost:3000/api/v1/search?q=hello
 Generate an API token from the Settings page, then include it in requests:
 
 ```bash
-curl -H "Authorization: snip_xxxxx" http://localhost:3000/api/v1/pastes
+curl -H "Authorization: snip_xxxxx" http://localhost:53524/api/v1/pastes
 ```
 
 ### API Endpoints
@@ -144,7 +144,7 @@ volumes:
 ```bash
 docker run -d \
   --name snip \
-  -p 3000:3000 \
+  -p 53524:53524 \
   -v snip-data:/app/data \
   -e SNIP_BASE_URL=https://snip.yourdomain.com \
   vesper/snip
@@ -155,8 +155,8 @@ docker run -d \
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SNIP_HOST` | `0.0.0.0` | Listen host |
-| `SNIP_PORT` | `3000` | Listen port |
-| `SNIP_BASE_URL` | `http://localhost:3000` | Public URL |
+| `SNIP_PORT` | `53524` | Listen port |
+| `SNIP_BASE_URL` | `http://localhost:53524` | Public URL |
 | `SNIP_DB_PATH` | `./data/snip.db` | Database path |
 | `SNIP_ADMIN_PASSWORD` | (empty) | Admin password |
 | `SNIP_JWT_SECRET` | (auto) | JWT signing key |

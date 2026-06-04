@@ -13,9 +13,9 @@ RUN apk add --no-cache ca-certificates sqlite
 WORKDIR /app
 COPY --from=builder /app/snip .
 RUN mkdir -p /app/data
-EXPOSE 3000
+EXPOSE 53524
 ENV SNIP_HOST=0.0.0.0
-ENV SNIP_PORT=3000
+ENV SNIP_PORT=53524
 ENV SNIP_DB_PATH=/app/data/snip.db
 VOLUME ["/app/data"]
 CMD ["./snip"]

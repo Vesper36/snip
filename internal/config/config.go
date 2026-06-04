@@ -41,7 +41,7 @@ func Load() *Config {
 	return &Config{
 		Server: ServerConfig{
 			Host:         envStr("SNIP_HOST", "0.0.0.0"),
-			Port:         envInt("SNIP_PORT", 3000),
+			Port:         envInt("SNIP_PORT", 53524),
 			BaseURL:      envStr("SNIP_BASE_URL", "http://localhost:3000"),
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 30 * time.Second,
