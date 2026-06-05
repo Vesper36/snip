@@ -20,6 +20,10 @@
             </button>
             <a href="/{{.P.Slug}}/raw" class="btn-sm" target="_blank">{{call .T "btn_raw"}}</a>
             <a href="/{{.P.Slug}}/download" class="btn-sm">{{call .T "btn_download"}}</a>
+            <button onclick="toggleQR()" class="qr-toggle">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                QR
+            </button>
         </div>
     </div>
     <div class="code-block">
@@ -27,18 +31,35 @@
     </div>
     <div class="paste-url">
         <label>{{call .T "label_share_url"}}</label>
-        <input type="text" value="{{.BaseURL}}/{{.P.Slug}}" readonly onclick="this.select()" class="input-url">
+        <input type="text" value="{{.BaseURL}}/{{.P.Slug}}" readonly onclick="this.select()" class="input-url" id="share-url">
+    </div>
+    <div class="qr-section" id="qr-section" style="display:none">
+        <div id="qr-code"></div>
+        <div style="font-size:0.8rem;color:var(--text-muted)">
+            <p>Scan to open this paste</p>
+            <p style="margin-top:0.25rem;font-family:monospace;color:var(--accent);font-size:0.75rem">{{.BaseURL}}/{{.P.Slug}}</p>
+        </div>
     </div>
 </div>
 <script>
 function copyContent() {
-    const text = document.querySelector('pre code').textContent;
-    navigator.clipboard.writeText(text).then(() => {
-        const btn = document.querySelector('.paste-actions .btn-sm');
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> {{call .T "label_copied"}}';
-        setTimeout(() => btn.innerHTML = orig, 2000);
+    var text = document.querySelector('pre code').textContent;
+    navigator.clipboard.writeText(text).then(function() {
+        showToast('{{call .T "label_copied"}}');
     });
+}
+function toggleQR() {
+    var section = document.getElementById('qr-section');
+    if (section.style.display === 'none') {
+        section.style.display = 'flex';
+        var qrDiv = document.getElementById('qr-code');
+        if (!qrDiv.hasChildNodes()) {
+            var url = document.getElementById('share-url').value;
+            qrDiv.appendChild(genQR(url, 120));
+        }
+    } else {
+        section.style.display = 'none';
+    }
 }
 </script>
 {{end}}
