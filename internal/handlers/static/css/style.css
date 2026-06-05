@@ -53,9 +53,12 @@ code { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', m
 .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; flex: 1; width: 100%; }
 
 /* ---- Hero ---- */
-.hero { text-align: center; padding: 3rem 0 3.5rem; position: relative; }
-.hero h1 { font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; background: linear-gradient(135deg, var(--accent), var(--purple), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; }
-.subtitle { color: var(--text-muted); font-size: 1.1rem; margin-top: 0.75rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+.hero { text-align: center; padding: 3rem 0 3.5rem; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at 30% 20%, rgba(59,130,246,0.08) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(168,85,247,0.06) 0%, transparent 50%); animation: heroGlow 8s ease-in-out infinite alternate; pointer-events: none; }
+@keyframes heroGlow { 0% { transform: translate(0, 0) rotate(0deg); } 100% { transform: translate(-2%, -2%) rotate(3deg); } }
+.hero h1 { font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; background: linear-gradient(135deg, var(--accent), var(--purple), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; background-size: 200% 200%; animation: gradShift 6s ease-in-out infinite; position: relative; z-index: 1; }
+@keyframes gradShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.subtitle { color: var(--text-muted); font-size: 1.1rem; margin-top: 0.75rem; max-width: 500px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
 
 /* ---- Form ---- */
 .paste-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow); transition: border-color var(--transition), box-shadow var(--transition); }
@@ -103,9 +106,15 @@ code { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', m
 .badge { background: var(--accent-bg); color: var(--accent); padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.7rem; font-weight: 500; letter-spacing: 0.02em; }
 .badge-lang { background: rgba(34,197,94,0.08); color: var(--green); }
 .badge-warn { background: rgba(234,179,8,0.08); color: var(--yellow); }
-.code-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow); }
-.code-block pre { margin: 0; padding: 1.25rem; overflow-x: auto; }
-.code-block code { font-size: 0.875rem; line-height: 1.7; }
+.code-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow); position: relative; }
+.code-block .code-header { display: flex; justify-content: space-between; align-items: center; padding: 0.625rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--bg-hover); }
+.code-block .code-header .lang-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.code-block pre { margin: 0; padding: 1.25rem 1.25rem 1.25rem 4.5rem; overflow-x: auto; position: relative; }
+.code-block code { font-size: 0.85rem; line-height: 1.75; }
+.code-block pre { counter-reset: line-num; }
+.code-block code { display: block; }
+.code-block code > span { display: block; position: relative; }
+.code-block code > span::before { counter-increment: line-num; content: counter(line-num); position: absolute; left: -3.5rem; top: 0; width: 2.5rem; text-align: right; color: var(--text-dim); font-size: 0.75rem; user-select: none; -webkit-user-select: none; border-right: 1px solid var(--border); padding-right: 0.75rem; }
 .paste-url { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); }
 .paste-url label { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; font-weight: 500; }
 .input-url { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--accent); padding: 0.4rem 0.75rem; font-size: 0.8rem; font-family: monospace; outline: none; transition: border-color var(--transition); }

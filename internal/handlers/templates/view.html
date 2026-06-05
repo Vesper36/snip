@@ -27,7 +27,11 @@
         </div>
     </div>
     <div class="code-block">
-        <pre><code class="{{langClass .P.Language}}">{{.P.Content}}</code></pre>
+        <div class="code-header">
+            <span class="lang-label">{{.P.Language}}</span>
+            <span class="lang-label" id="line-count"></span>
+        </div>
+        <pre><code class="{{langClass .P.Language}}" id="code-content">{{.P.Content}}</code></pre>
     </div>
     <div class="paste-url">
         <label>{{call .T "label_share_url"}}</label>
@@ -43,7 +47,8 @@
 </div>
 <script>
 function copyContent() {
-    var text = document.querySelector('pre code').textContent;
+    var code = document.getElementById('code-content');
+    var text = code.textContent;
     navigator.clipboard.writeText(text).then(function() {
         showToast('{{call .T "label_copied"}}');
     });
@@ -61,5 +66,14 @@ function toggleQR() {
         section.style.display = 'none';
     }
 }
+// Show line count
+(function() {
+    var code = document.getElementById('code-content');
+    if (!code) return;
+    var text = code.textContent;
+    var lines = text.split('\n');
+    if (lines[lines.length - 1] === '') lines.pop();
+    document.getElementById('line-count').textContent = lines.length + ' lines';
+})();
 </script>
 {{end}}

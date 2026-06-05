@@ -362,7 +362,19 @@ func (h *Handler) APICreateToken(w http.ResponseWriter, r *http.Request) {
 		Name      string `json:"name"`
 		ExpiresIn string `json:"expires_in"`
 	}
-	json.NewDecoder(r.Body).Decode(&req)
+	// Accept both JSON and form data (HTMX)
+	ct := r.Header.Get("Content-Type")
+	if len(ct) >= 5 && ct[:5] == "multi" {
+		_ = r.ParseForm()
+		req.Name = r.FormValue("name")
+		req.ExpiresIn = r.FormValue("expires_in")
+	} else if len(ct) >= 33 && ct[:33] == "application/x-www-form-urlencoded" {
+		_ = r.ParseForm()
+		req.Name = r.FormValue("name")
+		req.ExpiresIn = r.FormValue("expires_in")
+	} else {
+		json.NewDecoder(r.Body).Decode(&req)
+	}
 	if req.Name == "" {
 		h.apiErr(w, 400, "name required")
 		return
@@ -379,6 +391,22 @@ func (h *Handler) APICreateToken(w http.ResponseWriter, r *http.Request) {
 		ExpiresAt:   models.ParseExpiresIn(req.ExpiresIn),
 	}
 	h.store.CreateToken(t)
+
+	// If HTMX request, return HTML; else JSON
+	if r.Header.Get("HX-Request") == "true" {
+		lang := i18n.DefaultLang
+		if v := r.Context().Value(middleware.CtxLang); v != nil {
+			lang = v.(string)
+		}
+		html := `<div class="alert alert-ok" style="background:rgba(34,197,94,0.08);color:var(--green);border:1px solid rgba(34,197,94,0.2);padding:0.875rem 1.125rem;border-radius:8px;font-size:0.875rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+			` + i18n.T(lang, "token_save_hint") + ` Token: <code style="background:var(--bg);padding:0.125rem 0.5rem;border-radius:4px;color:var(--accent);font-family:monospace">` + raw + `</code>
+		</div>`
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(201)
+		w.Write([]byte(html))
+		return
+	}
 	h.apiJSON(w, 201, map[string]any{"id": t.ID, "name": t.Name, "token": raw, "message": "Save this token - it won't be shown again!"})
 }
 

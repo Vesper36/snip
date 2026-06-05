@@ -4,7 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snip - {{call .T "hero_title"}}</title>
+    <meta name="description" content="{{call .T "hero_subtitle"}}">
+    <meta name="theme-color" content="#0a0e14">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#9998;</text></svg>">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Snip - {{call .T "hero_title"}}">
+    <meta property="og:description" content="{{call .T "hero_subtitle"}}">
+    <meta property="og:site_name" content="Snip">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Snip - {{call .T "hero_title"}}">
+    <meta name="twitter:description" content="{{call .T "hero_subtitle"}}">
+
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
