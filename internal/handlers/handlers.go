@@ -155,6 +155,22 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(p.Content))
 }
 
+// Fork creates a new paste based on an existing one.
+func (h *Handler) Fork(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
+	ip := middleware.ClientIP(r)
+	p, err := h.paste.Fork(slug, ip)
+	if err != nil {
+		if err == services.ErrNotFound {
+			h.errPage(w, r, 404, "error_not_found_title", "error_not_found_msg")
+		} else {
+			h.errPage(w, r, 500, "error_generic_title", "error_generic_msg")
+		}
+		return
+	}
+	http.Redirect(w, r, "/"+p.Slug, http.StatusSeeOther)
+}
+
 func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query().Get("q")
 	if q == "" {
@@ -414,6 +430,47 @@ func (h *Handler) APIDeleteToken(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	h.store.DeleteToken(id)
 	h.apiJSON(w, 200, map[string]string{"status": "deleted"})
+}
+
+// Healthz is a health check endpoint (no auth required).
+func (h *Handler) Healthz(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := h.store.Ping(r.Context()); err != nil {
+		w.WriteHeader(503)
+		json.NewEncoder(w).Encode(map[string]any{
+			"status": "unhealthy",
+			"error":  err.Error(),
+		})
+		return
+	}
+	stats, _ := h.paste.Stats()
+	json.NewEncoder(w).Encode(map[string]any{
+		"status":   "ok",
+		"time":     time.Now().UTC().Format(time.RFC3339),
+		"version":  "1.0.0",
+		"pastes":   stats.TotalPastes,
+		"views":    stats.TotalViews,
+		"tokens":   stats.TotalTokens,
+		"storage":  stats.TotalBytes,
+	})
+}
+
+// Metrics exposes Prometheus-compatible metrics.
+func (h *Handler) Metrics(w http.ResponseWriter, r *http.Request) {
+	stats, _ := h.paste.Stats()
+	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+	fmt.Fprintf(w, "# HELP snip_pastes_total Total number of pastes\n")
+	fmt.Fprintf(w, "# TYPE snip_pastes_total gauge\n")
+	fmt.Fprintf(w, "snip_pastes_total %d\n", stats.TotalPastes)
+	fmt.Fprintf(w, "# HELP snip_views_total Total view count\n")
+	fmt.Fprintf(w, "# TYPE snip_views_total counter\n")
+	fmt.Fprintf(w, "snip_views_total %d\n", stats.TotalViews)
+	fmt.Fprintf(w, "# HELP snip_tokens_total Total API tokens\n")
+	fmt.Fprintf(w, "# TYPE snip_tokens_total gauge\n")
+	fmt.Fprintf(w, "snip_tokens_total %d\n", stats.TotalTokens)
+	fmt.Fprintf(w, "# HELP snip_storage_bytes Total storage used\n")
+	fmt.Fprintf(w, "# TYPE snip_storage_bytes gauge\n")
+	fmt.Fprintf(w, "snip_storage_bytes %d\n", stats.TotalBytes)
 }
 
 

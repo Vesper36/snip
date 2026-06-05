@@ -60,10 +60,16 @@ func main() {
 		r.Get("/", h.View)
 		r.Get("/raw", h.Raw)
 		r.Get("/download", h.Download)
+		r.Post("/fork", h.Fork)
+		r.Get("/fork", h.Fork)
 	})
 
 	// HTMX
 	r.Post("/hx/paste", h.CreateHTMX)
+
+	// Health & metrics
+	r.Get("/healthz", h.Healthz)
+	r.Get("/metrics", h.Metrics)
 
 	// API
 	r.Route("/api/v1", func(r chi.Router) {

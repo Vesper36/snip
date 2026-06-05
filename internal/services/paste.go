@@ -130,6 +130,26 @@ func (s *PasteService) Cleanup() (int64, error) {
 	return s.store.CleanupExpired()
 }
 
+// Fork creates a new paste based on the contents of an existing one.
+func (s *PasteService) Fork(slug, authorIP string) (*models.Paste, error) {
+	src, err := s.store.GetPaste(slug)
+	if err != nil {
+		return nil, err
+	}
+	if src == nil {
+		return nil, ErrNotFound
+	}
+	req := models.PasteCreateRequest{
+		Content:    src.Content,
+		Language:   src.Language,
+		BurnAfterRead: false,
+	}
+	if src.Title != "" {
+		req.Title = src.Title + " (fork)"
+	}
+	return s.Create(req, authorIP)
+}
+
 func detectLanguage(c string) string {
 	t := strings.TrimSpace(c)
 	if (strings.HasPrefix(t, "{") || strings.HasPrefix(t, "[")) && strings.Contains(t, "\"") {
