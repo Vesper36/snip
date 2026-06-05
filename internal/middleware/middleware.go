@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -148,6 +149,36 @@ func APITokenAuth(s *store.Store) func(http.Handler) http.Handler {
 			s.UpdateTokenUsed(t.ID)
 			ctx := context.WithValue(r.Context(), CtxAPIToken, t)
 			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+// RequestLogger logs incoming requests.
+func RequestLogger() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+			next.ServeHTTP(w, r)
+			log.Printf("[%s] %s %s %s %d %s",
+				r.Method, r.URL.Path, r.RemoteAddr, r.UserAgent(),
+				http.StatusOK, time.Since(start))
+		})
+	}
+}
+
+// CORS adds CORS headers for API routes.
+func CORS() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.Header().Set("Access-Control-Max-Age", "86400")
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(204)
+				return
+			}
+			next.ServeHTTP(w, r)
 		})
 	}
 }

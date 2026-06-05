@@ -6,16 +6,19 @@ import (
 	"strings"
 )
 
-//go:embed en.json zh.json
+//go:embed en.json zh.json ja.json fr.json de.json
 var fs embed.FS
 
 var (
 	translations = map[string]map[string]string{}
 	DefaultLang  = "en"
-	supported    = []string{"en", "zh"}
+	supported    = []string{"en", "zh", "ja", "fr", "de"}
 	Labels       = map[string]string{
 		"en": "English",
 		"zh": "中文",
+		"ja": "日本語",
+		"fr": "Français",
+		"de": "Deutsch",
 	}
 )
 

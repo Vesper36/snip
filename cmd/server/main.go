@@ -37,6 +37,7 @@ func main() {
 	r.Use(chimw.RealIP)
 	r.Use(middleware.WithClientIP)
 	r.Use(middleware.Security)
+	r.Use(middleware.RequestLogger())
 	r.Use(chimw.Compress(5))
 	r.Use(chimw.Timeout(30 * time.Second))
 	r.Use(middleware.RateLimit(120, time.Minute))
@@ -73,6 +74,7 @@ func main() {
 
 	// API
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(middleware.CORS())
 		r.Post("/pastes", h.APICreate)
 		r.Get("/pastes", h.APIList)
 		r.Get("/pastes/{slug}", h.APIGet)

@@ -90,5 +90,8 @@
     "lang_en": "English",
     "lang_zh": "中文",
     "form_drop_file": "拖拽文件或",
-    "form_choose_file": "选择文件"
+    "form_choose_file": "选择文件",
+    "lang_ja": "日本語",
+    "lang_fr": "Français",
+    "lang_de": "Deutsch"
 }
