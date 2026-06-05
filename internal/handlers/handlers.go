@@ -24,9 +24,13 @@ type Handler struct {
 	store    *store.Store
 	cfg      *config.Config
 	tmpls    map[string]*template.Template
+	version  string
 }
 
-func New(ps *services.PasteService, s *store.Store, cfg *config.Config) *Handler {
+func New(ps *services.PasteService, s *store.Store, cfg *config.Config, version string) *Handler {
+	if version == "" {
+		version = "dev"
+	}
 	funcMap := template.FuncMap{
 		"size": func(b int64) string {
 			switch {
@@ -58,7 +62,7 @@ func New(ps *services.PasteService, s *store.Store, cfg *config.Config) *Handler
 		"sub":       func(a, b int) int { return a - b },
 	}
 	tmpls := parseTemplates(funcMap)
-	return &Handler{paste: ps, store: s, cfg: cfg, tmpls: tmpls}
+	return &Handler{paste: ps, store: s, cfg: cfg, tmpls: tmpls, version: version}
 }
 
 func (h *Handler) render(w http.ResponseWriter, r *http.Request, name string, data map[string]any) {
@@ -466,7 +470,7 @@ func (h *Handler) Healthz(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]any{
 		"status":   "ok",
 		"time":     time.Now().UTC().Format(time.RFC3339),
-		"version":  "1.0.0",
+		"version":  h.version,
 		"pastes":   stats.TotalPastes,
 		"views":    stats.TotalViews,
 		"tokens":   stats.TotalTokens,

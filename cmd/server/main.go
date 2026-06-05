@@ -19,6 +19,11 @@ import (
 	"github.com/vesper/snip/internal/store"
 )
 
+var (
+	version = "dev"
+	commit  = "unknown"
+)
+
 func main() {
 	cfg := config.Load()
 
@@ -29,7 +34,7 @@ func main() {
 	defer db.Close()
 
 	pasteSvc := services.NewPasteService(db, cfg.Paste.MaxSize, cfg.Server.BaseURL)
-	h := handlers.New(pasteSvc, db, cfg)
+	h := handlers.New(pasteSvc, db, cfg, version)
 
 	r := chi.NewRouter()
 
