@@ -142,7 +142,9 @@ func (s *Store) DeletePaste(slug string) error {
 }
 
 func (s *Store) ListPastes(limit, offset int) ([]*models.Paste, error) {
-	rows, err := s.db.Query(`SELECT id,slug,title,content,language,file_size,is_encrypted,password_hash,
+	rows, err := s.db.Query(`SELECT id,slug,title,
+		CASE WHEN password_hash != '' THEN '' ELSE content END as content,
+		language,file_size,is_encrypted,password_hash,
 		burn_after_read,expires_at,max_views,views,author_ip,created_at,updated_at
 		FROM pastes WHERE (expires_at IS NULL OR expires_at>datetime('now'))
 		ORDER BY created_at DESC LIMIT? OFFSET?`, limit, offset)
@@ -165,9 +167,11 @@ func (s *Store) SearchPastes(q string, limit int) ([]*models.Paste, error) {
 	// Escape LIKE wildcards to prevent injection
 	escaped := strings.NewReplacer("%", "\\%", "_", "\\_", "\\", "\\\\").Replace(q)
 	pat := "%" + escaped + "%"
-	rows, err := s.db.Query(`SELECT id,slug,title,content,language,file_size,is_encrypted,password_hash,
+	rows, err := s.db.Query(`SELECT id,slug,title,
+		CASE WHEN password_hash != '' THEN '' ELSE content END as content,
+		language,file_size,is_encrypted,password_hash,
 		burn_after_read,expires_at,max_views,views,author_ip,created_at,updated_at
-		FROM pastes WHERE (title LIKE? OR content LIKE?) AND (expires_at IS NULL OR expires_at>datetime('now'))
+		FROM pastes WHERE (title LIKE? ESCAPE '\' OR content LIKE? ESCAPE '\') AND (expires_at IS NULL OR expires_at>datetime('now'))
 		ORDER BY created_at DESC LIMIT?`, pat, pat, limit)
 	if err != nil {
 		return nil, err

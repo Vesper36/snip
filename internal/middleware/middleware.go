@@ -153,15 +153,42 @@ func APITokenAuth(s *store.Store) func(http.Handler) http.Handler {
 	}
 }
 
+// responseWriter wraps http.ResponseWriter to capture status code.
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+	written    bool
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	if !rw.written {
+		rw.statusCode = code
+		rw.written = true
+	}
+	rw.ResponseWriter.WriteHeader(code)
+}
+
+func (rw *responseWriter) Write(b []byte) (int, error) {
+	if !rw.written {
+		rw.statusCode = 200
+		rw.written = true
+	}
+	return rw.ResponseWriter.Write(b)
+}
+
 // RequestLogger logs incoming requests.
 func RequestLogger() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
-			next.ServeHTTP(w, r)
-			log.Printf("[%s] %s %s %s %d %s",
-				r.Method, r.URL.Path, r.RemoteAddr, r.UserAgent(),
-				http.StatusOK, time.Since(start))
+			rw := &responseWriter{ResponseWriter: w, statusCode: 200}
+			next.ServeHTTP(rw, r)
+			if rw.statusCode >= 400 || r.URL.Path == "/healthz" || r.URL.Path == "/metrics" {
+				return // skip noisy or error logs
+			}
+			log.Printf("%s %s %s %d %s",
+				r.Method, r.URL.Path, r.RemoteAddr,
+				rw.statusCode, time.Since(start).Round(time.Millisecond))
 		})
 	}
 }
