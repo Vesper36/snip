@@ -86,5 +86,7 @@
     "hr_ago": "hr ago",
     "day_ago": "day ago",
     "lang_en": "English",
-    "lang_zh": "Chinese"
+    "lang_zh": "Chinese",
+    "form_drop_file": "Drop a file or",
+    "form_choose_file": "Browse"
 }

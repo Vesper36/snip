@@ -37,17 +37,19 @@ func New(ps *services.PasteService, s *store.Store, cfg *config.Config) *Handler
 				return fmt.Sprintf("%.1f MB", float64(b)/(1024*1024))
 			}
 		},
-		"timeAgo": func(t time.Time) string {
+		"timeAgo": func(t time.Time, lang ...string) string {
 			d := time.Since(t)
+			l := "en"
+			if len(lang) > 0 { l = lang[0] }
 			switch {
 			case d < time.Minute:
-				return "just now"
+				return i18n.T(l, "just_now")
 			case d < time.Hour:
-				return fmt.Sprintf("%dm ago", int(d.Minutes()))
+				return fmt.Sprintf("%d%s", int(d.Minutes()), i18n.T(l, "min_ago"))
 			case d < 24*time.Hour:
-				return fmt.Sprintf("%dh ago", int(d.Hours()))
+				return fmt.Sprintf("%d%s", int(d.Hours()), i18n.T(l, "hr_ago"))
 			default:
-				return fmt.Sprintf("%dd ago", int(d.Hours()/24))
+				return fmt.Sprintf("%d%s", int(d.Hours()/24), i18n.T(l, "day_ago"))
 			}
 		},
 		"langClass": func(l string) string { return "language-" + l },
@@ -223,11 +225,11 @@ func (h *Handler) SetLang(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) CreateHTMX(w http.ResponseWriter, r *http.Request) {
 	req := models.PasteCreateRequest{
-		Title:    r.FormValue("title"),
-		Content:  r.FormValue("content"),
-		Language: r.FormValue("language"),
-		Password: r.FormValue("password"),
-		ExpiresIn: r.FormValue("expires_in"),
+		Title:      r.FormValue("title"),
+		Content:    r.FormValue("content"),
+		Language:   r.FormValue("language"),
+		Password:   r.FormValue("password"),
+		ExpiresIn:  r.FormValue("expires_in"),
 		CustomSlug: r.FormValue("custom_slug"),
 	}
 	if r.FormValue("burn_after_read") == "on" {
@@ -235,6 +237,20 @@ func (h *Handler) CreateHTMX(w http.ResponseWriter, r *http.Request) {
 	}
 	if v := r.FormValue("max_views"); v != "" {
 		req.MaxViews, _ = strconv.Atoi(v)
+	}
+
+	// Handle file upload
+	if file, header, err := r.FormFile("file"); err == nil {
+		defer file.Close()
+		buf := make([]byte, h.cfg.Paste.MaxSize)
+		n, _ := file.Read(buf)
+		req.Content = string(buf[:n])
+		if req.Title == "" {
+			req.Title = header.Filename
+		}
+		if req.Language == "" || req.Language == "auto" {
+			req.Language = "plaintext"
+		}
 	}
 
 	ip := ""

@@ -171,6 +171,14 @@ code { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', m
 .token-item:hover { border-color: rgba(59,130,246,0.2); }
 .token-item code { color: var(--accent); margin-left: 0.5rem; font-size: 0.8rem; }
 
+/* ---- Drop Zone ---- */
+.drop-zone { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.25rem; border-top: 1px solid var(--border); background: var(--bg); color: var(--text-dim); font-size: 0.8rem; transition: all var(--transition); }
+.drop-zone.drag-over { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+.drop-zone svg { flex-shrink: 0; }
+.file-input { display: none; }
+.file-label { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-muted); padding: 0.25rem 0.625rem; font-size: 0.75rem; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+.file-label:hover { border-color: var(--accent); color: var(--accent); }
+
 /* ---- API Table ---- */
 .api-table { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-top: 1rem; }
 .api-row { display: grid; grid-template-columns: 80px 1fr 1fr; padding: 0.7rem 1.25rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; align-items: center; transition: background var(--transition); }

@@ -5,7 +5,7 @@
     <p class="subtitle">{{call .T "hero_subtitle"}}</p>
 </div>
 
-<form hx-post="/hx/paste" hx-target="#result" hx-swap="innerHTML" class="paste-form">
+<form hx-post="/hx/paste" hx-target="#result" hx-swap="innerHTML" class="paste-form" enctype="multipart/form-data">
     <div class="form-header">
         <input type="text" name="title" placeholder="{{call .T "form_placeholder_title"}}" class="input-title" autocomplete="off">
         <select name="language" class="select-lang">
@@ -13,8 +13,14 @@
             {{range .Languages}}<option value="{{.}}">{{.}}</option>{{end}}
         </select>
     </div>
-    <textarea name="content" placeholder="{{call .T "form_placeholder_content"}}" class="paste-textarea" rows="16" required autofocus></textarea>
-    <div style="display:flex;justify-content:flex-end;padding:0 1.25rem;margin-top:-0.5rem;margin-bottom:0.5rem">
+    <textarea name="content" placeholder="{{call .T "form_placeholder_content"}}" class="paste-textarea" rows="16" autofocus></textarea>
+    <div class="drop-zone" id="drop-zone">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>{{call .T "form_drop_file"}}</span>
+        <input type="file" name="file" id="file-input" class="file-input">
+        <label for="file-input" class="file-label">{{call .T "form_choose_file"}}</label>
+    </div>
+    <div style="display:flex;justify-content:flex-end;padding:0 1.25rem;margin:-0.25rem 0 0.5rem">
         <span style="font-size:0.7rem;color:var(--text-dim)"><span class="kbd">Tab</span> indent &bull; <span class="kbd">Ctrl</span>+<span class="kbd">Enter</span> submit</span>
     </div>
     <div id="result"></div>

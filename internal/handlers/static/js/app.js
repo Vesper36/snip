@@ -27,7 +27,6 @@
         navToggle.addEventListener('click', function() {
             navLinks.classList.toggle('open');
         });
-        // Close on outside click
         document.addEventListener('click', function(e) {
             if (!navToggle.contains(e.target) && !navLinks.contains(e.target)) {
                 navLinks.classList.remove('open');
@@ -37,7 +36,6 @@
 
     // ---- Keyboard Shortcuts ----
     document.addEventListener('keydown', function(e) {
-        // Ctrl/Cmd + Enter to submit paste form
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             var textarea = document.querySelector('.paste-textarea');
             if (textarea && document.activeElement === textarea) {
@@ -48,8 +46,6 @@
                 }
             }
         }
-
-        // / to focus search (when not in input)
         if (e.key === '/' && !isInputFocused()) {
             var search = document.querySelector('.input-search');
             if (search) {
@@ -57,8 +53,6 @@
                 search.focus();
             }
         }
-
-        // Escape to blur
         if (e.key === 'Escape') {
             document.activeElement.blur();
         }
@@ -83,23 +77,84 @@
         });
     }
 
-    // ---- QR Code (lightweight inline) ----
-    // Simple QR code generator - no external dependencies
+    // ---- Drag & Drop File Upload ----
+    var dropZone = document.getElementById('drop-zone');
+    var fileInput = document.getElementById('file-input');
+    var textarea = document.querySelector('.paste-textarea');
+
+    if (dropZone && fileInput) {
+        ['dragenter', 'dragover'].forEach(function(ev) {
+            dropZone.addEventListener(ev, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('drag-over');
+            });
+        });
+        ['dragleave', 'drop'].forEach(function(ev) {
+            dropZone.addEventListener(ev, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('drag-over');
+            });
+        });
+
+        // Drop on the whole form
+        var form = document.querySelector('.paste-form');
+        if (form) {
+            form.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+            form.addEventListener('dragleave', function(e) {
+                if (!form.contains(e.relatedTarget)) {
+                    dropZone.classList.remove('drag-over');
+                }
+            });
+            form.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                var files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFile(files[0]);
+                }
+            });
+        }
+
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                handleFile(this.files[0]);
+            }
+        });
+    }
+
+    function handleFile(file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            if (textarea) {
+                textarea.value = e.target.result;
+                textarea.removeAttribute('required');
+                // Update title with filename
+                var titleInput = document.querySelector('.input-title');
+                if (titleInput && !titleInput.value) {
+                    titleInput.value = file.name;
+                }
+                // Set language to plaintext for files
+                var langSelect = document.querySelector('.select-lang');
+                if (langSelect) {
+                    langSelect.value = 'plaintext';
+                }
+                showToast('File loaded: ' + file.name);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // ---- QR Code ----
     window.genQR = function(text, size) {
         size = size || 128;
-        var canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        canvas.style.borderRadius = '8px';
-        var ctx = canvas.getContext('2d');
-
-        // Simple approach: use QR code API
         var img = new Image();
         img.crossOrigin = 'anonymous';
-        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + size + 'x' + size + '&data=' + encodeURIComponent(text) + '&bgcolor=0d1117&color=58a6ff&format=png';
-        img.onload = function() {
-            ctx.drawImage(img, 0, 0, size, size);
-        };
+        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + size + 'x' + size + '&data=' + encodeURIComponent(text) + '&bgcolor=0a0e14&color=3b82f6&format=png';
         img.style.borderRadius = '8px';
         img.width = size;
         img.height = size;
@@ -107,8 +162,7 @@
     };
 
     // ---- Copy Enhancement ----
-    var copyBtns = document.querySelectorAll('[data-copy]');
-    copyBtns.forEach(function(btn) {
+    document.querySelectorAll('[data-copy]').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var text = this.getAttribute('data-copy');
             navigator.clipboard.writeText(text).then(function() {
@@ -117,14 +171,22 @@
         });
     });
 
-    // ---- HTMX Events ----
-    document.addEventListener('htmx:afterRequest', function(e) {
-        if (e.detail.successful) {
-            var target = e.detail.target;
-            if (target && target.id === 'result') {
-                // Paste created successfully
-            }
+    // ---- Hit Counter ----
+    // Animate stat values on settings page
+    document.querySelectorAll('.stat-value').forEach(function(el) {
+        var target = parseInt(el.textContent, 10);
+        if (isNaN(target) || target === 0) return;
+        var start = 0;
+        var duration = 800;
+        var startTime = null;
+        function animate(ts) {
+            if (!startTime) startTime = ts;
+            var progress = Math.min((ts - startTime) / duration, 1);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(eased * target);
+            if (progress < 1) requestAnimationFrame(animate);
         }
+        requestAnimationFrame(animate);
     });
 
 })();

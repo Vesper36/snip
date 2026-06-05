@@ -86,5 +86,7 @@
     "hr_ago": "小时前",
     "day_ago": "天前",
     "lang_en": "English",
-    "lang_zh": "中文"
+    "lang_zh": "中文",
+    "form_drop_file": "拖拽文件或",
+    "form_choose_file": "选择文件"
 }
