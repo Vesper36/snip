@@ -496,4 +496,17 @@ func (h *Handler) Metrics(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "snip_storage_bytes %d\n", stats.TotalBytes)
 }
 
+// Version returns the application version.
+func (h *Handler) Version(w http.ResponseWriter, r *http.Request) {
+	h.apiJSON(w, 200, map[string]string{"version": h.version})
+}
 
+// Backup creates a database backup.
+func (h *Handler) Backup(w http.ResponseWriter, r *http.Request) {
+	backupPath := h.cfg.Database.Path + ".backup"
+	if err := h.store.Backup(backupPath); err != nil {
+		h.apiErr(w, 500, "backup failed: "+err.Error())
+		return
+	}
+	h.apiJSON(w, 200, map[string]string{"status": "ok", "path": backupPath})
+}

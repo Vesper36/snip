@@ -193,6 +193,16 @@ func RequestLogger() func(http.Handler) http.Handler {
 	}
 }
 
+// BodySizeLimit limits the size of request bodies.
+func BodySizeLimit(maxBytes int64) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 // CORS adds CORS headers for API routes.
 func CORS() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

@@ -71,16 +71,17 @@ func main() {
 	})
 
 	// HTMX
-	r.Post("/hx/paste", h.CreateHTMX)
+	r.With(middleware.BodySizeLimit(cfg.Paste.MaxSize)).Post("/hx/paste", h.CreateHTMX)
 
 	// Health & metrics
 	r.Get("/healthz", h.Healthz)
 	r.Get("/metrics", h.Metrics)
+	r.Get("/version", h.Version)
 
 	// API
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Use(middleware.CORS())
-		r.Post("/pastes", h.APICreate)
+		r.With(middleware.BodySizeLimit(cfg.Paste.MaxSize)).Post("/pastes", h.APICreate)
 		r.Get("/pastes", h.APIList)
 		r.Get("/pastes/{slug}", h.APIGet)
 		r.Get("/search", h.APISearch)
@@ -91,6 +92,7 @@ func main() {
 			r.Delete("/pastes/{slug}", h.APIDelete)
 			r.Post("/tokens", h.APICreateToken)
 			r.Delete("/tokens/{id}", h.APIDeleteToken)
+			r.Post("/backup", h.Backup)
 		})
 	})
 

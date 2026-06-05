@@ -204,6 +204,13 @@ func (s *Store) CleanupExpired() (int64, error) {
 	return res.RowsAffected()
 }
 
+// Backup creates a SQLite backup of the database.
+func (s *Store) Backup(destPath string) error {
+	// Use SQLite's VACUUM INTO for a consistent backup
+	_, err := s.db.Exec("VACUUM INTO ?", destPath)
+	return err
+}
+
 // --- API Token Operations ---
 
 func (s *Store) CreateToken(t *models.APIToken) error {
