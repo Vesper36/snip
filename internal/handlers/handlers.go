@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -53,7 +54,6 @@ func New(ps *services.PasteService, s *store.Store, cfg *config.Config) *Handler
 			}
 		},
 		"langClass": func(l string) string { return "language-" + l },
-		"safe":      func(s string) template.HTML { return template.HTML(s) },
 		"add":       func(a, b int) int { return a + b },
 		"sub":       func(a, b int) int { return a - b },
 	}
@@ -130,8 +130,13 @@ func (h *Handler) View(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Raw(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
-	p, err := h.paste.Get(slug, r.URL.Query().Get("password"))
+	pw := r.URL.Query().Get("password")
+	p, err := h.paste.Get(slug, pw)
 	if err != nil {
+		if err == services.ErrNeedPassword || err == services.ErrBadPassword {
+			h.errPage(w, r, 403, "error_forbidden_title", "error_forbidden_msg")
+			return
+		}
 		http.Error(w, "not found", 404)
 		return
 	}
@@ -141,16 +146,24 @@ func (h *Handler) Raw(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
-	p, err := h.paste.Get(slug, r.URL.Query().Get("password"))
+	pw := r.URL.Query().Get("password")
+	p, err := h.paste.Get(slug, pw)
 	if err != nil {
+		if err == services.ErrNeedPassword || err == services.ErrBadPassword {
+			h.errPage(w, r, 403, "error_forbidden_title", "error_forbidden_msg")
+			return
+		}
 		http.Error(w, "not found", 404)
 		return
 	}
+	// Sanitize filename for Content-Disposition header
 	name := p.Title
 	if name == "" {
 		name = slug + ".txt"
 	}
-	w.Header().Set("Content-Disposition", `attachment; filename="`+name+`"`)
+	// Remove any characters that could break the header (quotes, newlines, backslashes)
+	sanitized := strings.NewReplacer(`"`, "'", "\\", "", "\n", "", "\r", "").Replace(name)
+	w.Header().Set("Content-Disposition", `attachment; filename="`+sanitized+`"`)
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Write([]byte(p.Content))
 }
@@ -159,11 +172,17 @@ func (h *Handler) Download(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Fork(w http.ResponseWriter, r *http.Request) {
 	slug := chi.URLParam(r, "slug")
 	ip := middleware.ClientIP(r)
-	p, err := h.paste.Fork(slug, ip)
+	password := r.URL.Query().Get("password")
+	p, err := h.paste.Fork(slug, password, ip)
 	if err != nil {
-		if err == services.ErrNotFound {
+		switch err {
+		case services.ErrNotFound:
 			h.errPage(w, r, 404, "error_not_found_title", "error_not_found_msg")
-		} else {
+		case services.ErrNeedPassword:
+			h.render(w, r, "password.html", map[string]any{"Slug": slug, "NeedPW": true})
+		case services.ErrBadPassword:
+			h.render(w, r, "password.html", map[string]any{"Slug": slug, "NeedPW": true, "Error": "auth_wrong_password"})
+		default:
 			h.errPage(w, r, 500, "error_generic_title", "error_generic_msg")
 		}
 		return

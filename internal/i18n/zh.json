@@ -68,6 +68,8 @@
     "error_gone_msg": "已达到最大查看次数。",
     "error_generic_title": "错误",
     "error_generic_msg": "出了点问题。",
+    "error_forbidden_title": "访问被拒绝",
+    "error_forbidden_msg": "需要密码才能查看此粘贴。",
     "btn_create_new": "创建新粘贴",
     "empty_no_pastes": "暂无粘贴。",
     "empty_create_one": "创建一个!",

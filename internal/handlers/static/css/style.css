@@ -33,7 +33,7 @@ code { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', m
 ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
 /* ---- Nav ---- */
-.nav { border-bottom: 1px solid var(--border); background: rgba(19,24,32,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; }
+.nav { border-bottom: 1px solid var(--border); background: var(--bg-card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; }
 .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 56px; }
 .nav-brand { display: flex; align-items: center; gap: 0.5rem; color: var(--text); font-weight: 700; font-size: 1.1rem; }
 .nav-brand svg { color: var(--accent); }
@@ -118,12 +118,8 @@ code { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', m
 .code-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow); position: relative; }
 .code-block .code-header { display: flex; justify-content: space-between; align-items: center; padding: 0.625rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--bg-hover); }
 .code-block .code-header .lang-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-.code-block pre { margin: 0; padding: 1.25rem 1.25rem 1.25rem 4.5rem; overflow-x: auto; position: relative; }
+.code-block pre { margin: 0; padding: 1.25rem; overflow-x: auto; }
 .code-block code { font-size: 0.85rem; line-height: 1.75; }
-.code-block pre { counter-reset: line-num; }
-.code-block code { display: block; }
-.code-block code > span { display: block; position: relative; }
-.code-block code > span::before { counter-increment: line-num; content: counter(line-num); position: absolute; left: -3.5rem; top: 0; width: 2.5rem; text-align: right; color: var(--text-dim); font-size: 0.75rem; user-select: none; -webkit-user-select: none; border-right: 1px solid var(--border); padding-right: 0.75rem; }
 .paste-url { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; padding: 0.75rem 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); }
 .paste-url label { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; font-weight: 500; }
 .input-url { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--accent); padding: 0.4rem 0.75rem; font-size: 0.8rem; font-family: monospace; outline: none; transition: border-color var(--transition); }

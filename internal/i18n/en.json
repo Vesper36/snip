@@ -68,6 +68,8 @@
     "error_gone_msg": "View limit reached.",
     "error_generic_title": "Error",
     "error_generic_msg": "Something went wrong.",
+    "error_forbidden_title": "Access Denied",
+    "error_forbidden_msg": "You need a password to access this paste.",
     "btn_create_new": "Create New Paste",
     "empty_no_pastes": "No pastes yet.",
     "empty_create_one": "Create one!",

@@ -88,10 +88,18 @@ func main() {
 	})
 
 	// Cleanup expired pastes
+	stopCleanup := make(chan struct{})
 	go func() {
-		for range time.Tick(10 * time.Minute) {
-			if n, _ := pasteSvc.Cleanup(); n > 0 {
-				log.Printf("Cleaned %d expired pastes", n)
+		ticker := time.NewTicker(10 * time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				if n, _ := pasteSvc.Cleanup(); n > 0 {
+					log.Printf("Cleaned %d expired pastes", n)
+				}
+			case <-stopCleanup:
+				return
 			}
 		}
 	}()
@@ -101,11 +109,13 @@ func main() {
 
 	srv := &http.Server{Addr: addr, Handler: r, ReadTimeout: 10 * time.Second, WriteTimeout: 30 * time.Second}
 
+	// Graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
-		ch := make(chan os.Signal, 1)
-		signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-		<-ch
+		<-quit
 		log.Println("Shutting down...")
+		close(stopCleanup)
 		srv.Close()
 	}()
 

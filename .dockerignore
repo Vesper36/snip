@@ -1,5 +1,6 @@
-bin/
-data/
+.git
+bin
+data
 *.db
 *.db-wal
 *.db-shm
@@ -8,11 +9,12 @@ data/
 *.exe
 *.out
 coverage.out
-dist/
+dist
 snip
 *.log
-.vscode/
-.idea/
-vendor/
-/coverage.out
-server
+.vscode
+.idea
+vendor
+scripts
+*.md
+.github

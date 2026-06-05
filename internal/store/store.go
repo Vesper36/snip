@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -24,8 +25,8 @@ func New(dbPath string) (*Store, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open db: %w", err)
 	}
-	db.SetMaxOpenConns(1)
-	db.SetMaxIdleConns(1)
+	db.SetMaxOpenConns(5)
+	db.SetMaxIdleConns(3)
 	s := &Store{db: db}
 	if err := s.migrate(); err != nil {
 		return nil, fmt.Errorf("migrate: %w", err)
@@ -41,38 +42,61 @@ func (s *Store) Ping(ctx context.Context) error {
 }
 
 func (s *Store) migrate() error {
-	_, err := s.db.Exec(`
-	CREATE TABLE IF NOT EXISTS pastes (
-		id              INTEGER PRIMARY KEY AUTOINCREMENT,
-		slug            TEXT NOT NULL UNIQUE,
-		title           TEXT NOT NULL DEFAULT '',
-		content         TEXT NOT NULL DEFAULT '',
-		language        TEXT NOT NULL DEFAULT 'plaintext',
-		file_size       INTEGER NOT NULL DEFAULT 0,
-		is_encrypted    INTEGER NOT NULL DEFAULT 0,
-		password_hash   TEXT NOT NULL DEFAULT '',
-		burn_after_read INTEGER NOT NULL DEFAULT 0,
-		expires_at      DATETIME,
-		max_views       INTEGER NOT NULL DEFAULT 0,
-		views           INTEGER NOT NULL DEFAULT 0,
-		author_ip       TEXT NOT NULL DEFAULT '',
-		created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-	);
-	CREATE INDEX IF NOT EXISTS idx_pastes_slug ON pastes(slug);
-	CREATE INDEX IF NOT EXISTS idx_pastes_expires ON pastes(expires_at);
-	CREATE INDEX IF NOT EXISTS idx_pastes_created ON pastes(created_at DESC);
+	// Schema version tracking
+	s.db.Exec(`CREATE TABLE IF NOT EXISTS schema_version (version INTEGER PRIMARY KEY)`)
+	var version int
+	s.db.QueryRow("SELECT COALESCE(MAX(version), 0) FROM schema_version").Scan(&version)
 
-	CREATE TABLE IF NOT EXISTS api_tokens (
-		id           INTEGER PRIMARY KEY AUTOINCREMENT,
-		name         TEXT NOT NULL,
-		token_hash   TEXT NOT NULL UNIQUE,
-		token_prefix TEXT NOT NULL,
-		last_used_at DATETIME,
-		expires_at   DATETIME,
-		created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-	);`)
-	return err
+	migrations := []struct {
+		version int
+		sql     string
+	}{
+		{
+			1, `CREATE TABLE IF NOT EXISTS pastes (
+			id              INTEGER PRIMARY KEY AUTOINCREMENT,
+			slug            TEXT NOT NULL UNIQUE,
+			title           TEXT NOT NULL DEFAULT '',
+			content         TEXT NOT NULL DEFAULT '',
+			language        TEXT NOT NULL DEFAULT 'plaintext',
+			file_size       INTEGER NOT NULL DEFAULT 0,
+			is_encrypted    INTEGER NOT NULL DEFAULT 0,
+			password_hash   TEXT NOT NULL DEFAULT '',
+			burn_after_read INTEGER NOT NULL DEFAULT 0,
+			expires_at      DATETIME,
+			max_views       INTEGER NOT NULL DEFAULT 0,
+			views           INTEGER NOT NULL DEFAULT 0,
+			author_ip       TEXT NOT NULL DEFAULT '',
+			created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+		)`,
+		},
+		{
+			2, `CREATE TABLE IF NOT EXISTS api_tokens (
+			id           INTEGER PRIMARY KEY AUTOINCREMENT,
+			name         TEXT NOT NULL,
+			token_hash   TEXT NOT NULL UNIQUE,
+			token_prefix TEXT NOT NULL,
+			last_used_at DATETIME,
+			expires_at   DATETIME,
+			created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+		)`,
+		},
+		{3, `CREATE INDEX IF NOT EXISTS idx_pastes_slug ON pastes(slug)`},
+		{4, `CREATE INDEX IF NOT EXISTS idx_pastes_expires ON pastes(expires_at)`},
+		{5, `CREATE INDEX IF NOT EXISTS idx_pastes_created ON pastes(created_at DESC)`},
+		{6, `CREATE INDEX IF NOT EXISTS idx_tokens_hash ON api_tokens(token_hash)`},
+		{7, `CREATE INDEX IF NOT EXISTS idx_pastes_burn ON pastes(burn_after_read, views)`},
+	}
+
+	for _, m := range migrations {
+		if m.version > version {
+			if _, err := s.db.Exec(m.sql); err != nil {
+				return fmt.Errorf("migration %d: %w", m.version, err)
+			}
+			s.db.Exec("INSERT INTO schema_version (version) VALUES (?)", m.version)
+		}
+	}
+	return nil
 }
 
 // --- Paste Operations ---
@@ -138,7 +162,9 @@ func (s *Store) ListPastes(limit, offset int) ([]*models.Paste, error) {
 }
 
 func (s *Store) SearchPastes(q string, limit int) ([]*models.Paste, error) {
-	pat := "%" + q + "%"
+	// Escape LIKE wildcards to prevent injection
+	escaped := strings.NewReplacer("%", "\\%", "_", "\\_", "\\", "\\\\").Replace(q)
+	pat := "%" + escaped + "%"
 	rows, err := s.db.Query(`SELECT id,slug,title,content,language,file_size,is_encrypted,password_hash,
 		burn_after_read,expires_at,max_views,views,author_ip,created_at,updated_at
 		FROM pastes WHERE (title LIKE? OR content LIKE?) AND (expires_at IS NULL OR expires_at>datetime('now'))

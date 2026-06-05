@@ -131,13 +131,22 @@ func (s *PasteService) Cleanup() (int64, error) {
 }
 
 // Fork creates a new paste based on the contents of an existing one.
-func (s *PasteService) Fork(slug, authorIP string) (*models.Paste, error) {
+func (s *PasteService) Fork(slug, password, authorIP string) (*models.Paste, error) {
 	src, err := s.store.GetPaste(slug)
 	if err != nil {
 		return nil, err
 	}
 	if src == nil {
 		return nil, ErrNotFound
+	}
+	// Password-protected pastes cannot be forked without the password
+	if src.PasswordHash != "" {
+		if password == "" {
+			return nil, ErrNeedPassword
+		}
+		if !auth.CheckPassword(password, src.PasswordHash) {
+			return nil, ErrBadPassword
+		}
 	}
 	req := models.PasteCreateRequest{
 		Content:    src.Content,
