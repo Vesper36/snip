@@ -1,52 +1,52 @@
 {{define "home.html"}}{{template "base.html" .}}{{end}}
 {{define "content"}}
 <div class="hero">
-    <h1>Paste. Share. Done.</h1>
-    <p class="subtitle">Self-hosted code sharing with syntax highlighting, encryption, and auto-expiry.</p>
+    <h1>{{call .T "hero_title"}}</h1>
+    <p class="subtitle">{{call .T "hero_subtitle"}}</p>
 </div>
 
 <form hx-post="/hx/paste" hx-target="#result" hx-swap="innerHTML" class="paste-form">
     <div class="form-header">
-        <input type="text" name="title" placeholder="Untitled paste..." class="input-title" autocomplete="off">
+        <input type="text" name="title" placeholder="{{call .T "form_placeholder_title"}}" class="input-title" autocomplete="off">
         <select name="language" class="select-lang">
-            <option value="auto">Auto-detect</option>
+            <option value="auto">{{call .T "form_auto_detect"}}</option>
             {{range .Languages}}<option value="{{.}}">{{.}}</option>{{end}}
         </select>
     </div>
-    <textarea name="content" placeholder="Paste your code here..." class="paste-textarea" rows="16" required autofocus></textarea>
+    <textarea name="content" placeholder="{{call .T "form_placeholder_content"}}" class="paste-textarea" rows="16" required autofocus></textarea>
     <div id="result"></div>
     <div class="form-options">
         <div class="option-group">
-            <label>Expires</label>
+            <label>{{call .T "form_expires"}}</label>
             <select name="expires_in" class="select-sm">
-                <option value="never">Never</option>
-                <option value="10m">10 minutes</option>
-                <option value="1h">1 hour</option>
-                <option value="1d">1 day</option>
-                <option value="1w">1 week</option>
-                <option value="1m">1 month</option>
+                <option value="never">{{call .T "never"}}</option>
+                <option value="10m">{{call .T "10m"}}</option>
+                <option value="1h">{{call .T "1h"}}</option>
+                <option value="1d">{{call .T "1d"}}</option>
+                <option value="1w">{{call .T "1w"}}</option>
+                <option value="1m">{{call .T "1m"}}</option>
             </select>
         </div>
         <div class="option-group">
-            <label>Password</label>
-            <input type="text" name="password" placeholder="Optional" class="input-sm" autocomplete="off">
+            <label>{{call .T "form_password"}}</label>
+            <input type="text" name="password" placeholder="{{call .T "form_optional"}}" class="input-sm" autocomplete="off">
         </div>
         <div class="option-group">
-            <label>Custom URL</label>
-            <input type="text" name="custom_slug" placeholder="Optional" class="input-sm" autocomplete="off">
+            <label>{{call .T "form_custom_url"}}</label>
+            <input type="text" name="custom_slug" placeholder="{{call .T "form_optional"}}" class="input-sm" autocomplete="off">
         </div>
         <div class="option-group">
-            <label>Max views</label>
-            <input type="number" name="max_views" placeholder="Unlimited" class="input-sm" min="1">
+            <label>{{call .T "form_max_views"}}</label>
+            <input type="number" name="max_views" placeholder="{{call .T "form_unlimited"}}" class="input-sm" min="1">
         </div>
         <div class="option-group checkbox-group">
             <label class="checkbox-label">
                 <input type="checkbox" name="burn_after_read">
-                <span>Burn after reading</span>
+                <span>{{call .T "form_burn_after_read"}}</span>
             </label>
         </div>
     </div>
-    <button type="submit" class="btn-primary">Create Snip</button>
+    <button type="submit" class="btn-primary">{{call .T "btn_create"}}</button>
 </form>
 
 <div class="features">
@@ -54,29 +54,29 @@
         <div class="feature-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
         </div>
-        <h3>Auto Expiry</h3>
-        <p>Set expiration from 10 minutes to 1 month. Expired pastes are automatically cleaned up.</p>
+        <h3>{{call .T "feature_expiry_title"}}</h3>
+        <p>{{call .T "feature_expiry_desc"}}</p>
     </div>
     <div class="feature">
         <div class="feature-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
-        <h3>Password Protection</h3>
-        <p>Protect sensitive pastes with a password. Content is encrypted with bcrypt.</p>
+        <h3>{{call .T "feature_password_title"}}</h3>
+        <p>{{call .T "feature_password_desc"}}</p>
     </div>
     <div class="feature">
         <div class="feature-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         </div>
-        <h3>Burn After Reading</h3>
-        <p>Self-destructing pastes that are deleted after being viewed once.</p>
+        <h3>{{call .T "feature_burn_title"}}</h3>
+        <p>{{call .T "feature_burn_desc"}}</p>
     </div>
     <div class="feature">
         <div class="feature-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </div>
-        <h3>REST API</h3>
-        <p>Full REST API with API tokens for programmatic access. CLI-friendly.</p>
+        <h3>{{call .T "feature_api_title"}}</h3>
+        <p>{{call .T "feature_api_desc"}}</p>
     </div>
 </div>
 {{end}}

@@ -7,26 +7,26 @@
             <div class="paste-info">
                 <span class="badge badge-lang">{{.P.Language}}</span>
                 <span class="badge">{{size .P.FileSize}}</span>
-                <span class="badge">{{.P.Views}} views</span>
+                <span class="badge">{{.P.Views}} {{call .T "label_views"}}</span>
                 <span class="badge">{{timeAgo .P.CreatedAt}}</span>
-                {{if .P.BurnAfterRead}}<span class="badge badge-warn">Burn after read</span>{{end}}
-                {{if .P.ExpiresAt}}<span class="badge badge-warn">Expires: {{.P.ExpiresAt}}</span>{{end}}
+                {{if .P.BurnAfterRead}}<span class="badge badge-warn">{{call .T "label_burn"}}</span>{{end}}
+                {{if .P.ExpiresAt}}<span class="badge badge-warn">{{call .T "label_expires"}}: {{.P.ExpiresAt}}</span>{{end}}
             </div>
         </div>
         <div class="paste-actions">
-            <button onclick="copyContent()" class="btn-sm" title="Copy">
+            <button onclick="copyContent()" class="btn-sm" title="{{call .T "btn_copy"}}">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                Copy
+                {{call .T "btn_copy"}}
             </button>
-            <a href="/{{.P.Slug}}/raw" class="btn-sm" target="_blank">Raw</a>
-            <a href="/{{.P.Slug}}/download" class="btn-sm">Download</a>
+            <a href="/{{.P.Slug}}/raw" class="btn-sm" target="_blank">{{call .T "btn_raw"}}</a>
+            <a href="/{{.P.Slug}}/download" class="btn-sm">{{call .T "btn_download"}}</a>
         </div>
     </div>
     <div class="code-block">
         <pre><code class="{{langClass .P.Language}}">{{.P.Content}}</code></pre>
     </div>
     <div class="paste-url">
-        <label>Share URL:</label>
+        <label>{{call .T "label_share_url"}}</label>
         <input type="text" value="{{.BaseURL}}/{{.P.Slug}}" readonly onclick="this.select()" class="input-url">
     </div>
 </div>
@@ -36,7 +36,7 @@ function copyContent() {
     navigator.clipboard.writeText(text).then(() => {
         const btn = document.querySelector('.paste-actions .btn-sm');
         const orig = btn.innerHTML;
-        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Copied!';
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> {{call .T "label_copied"}}';
         setTimeout(() => btn.innerHTML = orig, 2000);
     });
 }

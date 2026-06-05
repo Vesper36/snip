@@ -2,8 +2,8 @@
 {{define "content"}}
 <div class="error-page">
     <div class="error-code">{{.Code}}</div>
-    <h1>{{.Title}}</h1>
-    <p>{{.Message}}</p>
-    <a href="/" class="btn-primary">Create New Paste</a>
+    <h1>{{T .Title}}</h1>
+    <p>{{T .Message}}</p>
+    <a href="/" class="btn-primary">{{call .T "btn_create_new"}}</a>
 </div>
 {{end}}

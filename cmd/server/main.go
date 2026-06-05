@@ -13,6 +13,7 @@ import (
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/vesper/snip/internal/config"
 	"github.com/vesper/snip/internal/handlers"
+	"github.com/vesper/snip/internal/i18n"
 	"github.com/vesper/snip/internal/middleware"
 	"github.com/vesper/snip/internal/services"
 	"github.com/vesper/snip/internal/store"
@@ -39,9 +40,14 @@ func main() {
 	r.Use(chimw.Compress(5))
 	r.Use(chimw.Timeout(30 * time.Second))
 	r.Use(middleware.RateLimit(120, time.Minute))
+	r.Use(middleware.DetectLanguage(i18n.Supported(), i18n.DefaultLang))
 
 	// Static files
 	r.Handle("/static/*", http.StripPrefix("/static/", handlers.StaticHandler()))
+
+	// Language switcher
+	r.Get("/lang", h.SetLang)
+	r.Post("/lang", h.SetLang)
 
 	// Web routes
 	r.Get("/", h.Home)

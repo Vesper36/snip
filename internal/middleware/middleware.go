@@ -17,6 +17,7 @@ const (
 	CtxClaims   ctxKey = "claims"
 	CtxAPIToken ctxKey = "api_token"
 	CtxClientIP ctxKey = "client_ip"
+	CtxLang     ctxKey = "lang"
 )
 
 func ClientIP(r *http.Request) string {
@@ -143,6 +144,43 @@ func APITokenAuth(s *store.Store) func(http.Handler) http.Handler {
 			}
 			s.UpdateTokenUsed(t.ID)
 			ctx := context.WithValue(r.Context(), CtxAPIToken, t)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+// DetectLanguage sets the language in context from cookie or Accept-Language header.
+func DetectLanguage(supported []string, defaultLang string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			lang := defaultLang
+
+			// 1. Check cookie
+			if c, err := r.Cookie("lang"); err == nil {
+				for _, s := range supported {
+					if c.Value == s {
+						lang = c.Value
+						break
+					}
+				}
+			} else if al := r.Header.Get("Accept-Language"); al != "" {
+				// 2. Parse Accept-Language
+				for _, part := range strings.Split(al, ",") {
+					code := strings.ToLower(strings.TrimSpace(strings.SplitN(part, ";", 2)[0]))
+					code = strings.SplitN(code, "-", 2)[0]
+					for _, s := range supported {
+						if code == s {
+							lang = code
+							break
+						}
+					}
+					if lang != defaultLang {
+						break
+					}
+				}
+			}
+
+			ctx := context.WithValue(r.Context(), CtxLang, lang)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

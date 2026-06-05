@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/vesper/snip/internal/auth"
 	"github.com/vesper/snip/internal/config"
+	"github.com/vesper/snip/internal/i18n"
 	"github.com/vesper/snip/internal/middleware"
 	"github.com/vesper/snip/internal/models"
 	"github.com/vesper/snip/internal/services"
@@ -58,9 +59,19 @@ func New(ps *services.PasteService, s *store.Store, cfg *config.Config) *Handler
 	return &Handler{paste: ps, store: s, cfg: cfg, tmpls: tmpls}
 }
 
-func (h *Handler) render(w http.ResponseWriter, name string, data any) {
+func (h *Handler) render(w http.ResponseWriter, r *http.Request, name string, data map[string]any) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	// name is like "home.html", template key is "home"
+
+	// Inject i18n data
+	lang := i18n.DefaultLang
+	if v := r.Context().Value(middleware.CtxLang); v != nil {
+		lang = v.(string)
+	}
+	data["Lang"] = lang
+	data["T"] = func(key string) string { return i18n.T(lang, key) }
+	data["SupportedLangs"] = i18n.Supported()
+	data["LangLabels"] = i18n.Labels
+
 	key := name
 	if idx := len(key) - 5; idx > 0 && key[idx:] == ".html" {
 		key = key[:idx]
@@ -73,15 +84,15 @@ func (h *Handler) render(w http.ResponseWriter, name string, data any) {
 	t.ExecuteTemplate(w, name, data)
 }
 
-func (h *Handler) errPage(w http.ResponseWriter, code int, title, msg string) {
+func (h *Handler) errPage(w http.ResponseWriter, r *http.Request, code int, title, msg string) {
 	w.WriteHeader(code)
-	h.render(w, "error.html", map[string]any{"Code": code, "Title": title, "Message": msg})
+	h.render(w, r, "error.html", map[string]any{"Code": code, "Title": title, "Message": msg})
 }
 
 // --- Web Handlers ---
 
 func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
-	h.render(w, "home.html", map[string]any{
+	h.render(w, r, "home.html", map[string]any{
 		"Languages": models.LanguageList(),
 		"BaseURL":   h.cfg.Server.BaseURL,
 	})
@@ -98,21 +109,21 @@ func (h *Handler) View(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		case services.ErrNotFound:
-			h.errPage(w, 404, "Not Found", "This paste does not exist.")
+			h.errPage(w, r, 404, "error_not_found_title", "error_not_found_msg")
 		case services.ErrExpired:
-			h.errPage(w, 410, "Expired", "This paste has expired.")
+			h.errPage(w, r, 410, "error_expired_title", "error_expired_msg")
 		case services.ErrMaxViews:
-			h.errPage(w, 410, "Gone", "View limit reached.")
+			h.errPage(w, r, 410, "error_gone_title", "error_gone_msg")
 		case services.ErrNeedPassword:
-			h.render(w, "password.html", map[string]any{"Slug": slug, "NeedPW": true})
+			h.render(w, r, "password.html", map[string]any{"Slug": slug, "NeedPW": true})
 		case services.ErrBadPassword:
-			h.render(w, "password.html", map[string]any{"Slug": slug, "NeedPW": true, "Error": "Wrong password."})
+			h.render(w, r, "password.html", map[string]any{"Slug": slug, "NeedPW": true, "Error": "auth_wrong_password"})
 		default:
-			h.errPage(w, 500, "Error", "Something went wrong.")
+			h.errPage(w, r, 500, "error_generic_title", "error_generic_msg")
 		}
 		return
 	}
-	h.render(w, "view.html", map[string]any{"P": p, "BaseURL": h.cfg.Server.BaseURL, "Languages": models.LanguageList()})
+	h.render(w, r, "view.html", map[string]any{"P": p, "BaseURL": h.cfg.Server.BaseURL, "Languages": models.LanguageList()})
 }
 
 func (h *Handler) Raw(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +160,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	pastes, _ := h.paste.Search(q, 50)
-	h.render(w, "search.html", map[string]any{"Query": q, "Pastes": pastes, "BaseURL": h.cfg.Server.BaseURL})
+	h.render(w, r, "search.html", map[string]any{"Query": q, "Pastes": pastes, "BaseURL": h.cfg.Server.BaseURL})
 }
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
@@ -164,7 +175,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		pastes = pastes[:limit]
 	}
 	total, _ := h.store.CountPastes()
-	h.render(w, "list.html", map[string]any{
+	h.render(w, r, "list.html", map[string]any{
 		"Pastes": pastes, "Page": page, "HasNext": hasNext, "Total": total, "BaseURL": h.cfg.Server.BaseURL,
 	})
 }
@@ -172,10 +183,43 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Settings(w http.ResponseWriter, r *http.Request) {
 	tokens, _ := h.store.ListTokens()
 	stats, _ := h.paste.Stats()
-	h.render(w, "settings.html", map[string]any{"Tokens": tokens, "Stats": stats, "BaseURL": h.cfg.Server.BaseURL})
+	h.render(w, r, "settings.html", map[string]any{"Tokens": tokens, "Stats": stats, "BaseURL": h.cfg.Server.BaseURL})
 }
 
 // --- HTMX Handler ---
+
+// SetLang handles language switching via cookie.
+func (h *Handler) SetLang(w http.ResponseWriter, r *http.Request) {
+	lang := r.URL.Query().Get("lang")
+	if lang == "" {
+		lang = r.FormValue("lang")
+	}
+	// Validate
+	valid := false
+	for _, s := range i18n.Supported() {
+		if lang == s {
+			valid = true
+			break
+		}
+	}
+	if !valid {
+		lang = i18n.DefaultLang
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "lang",
+		Value:    lang,
+		Path:     "/",
+		MaxAge:   365 * 24 * 60 * 60,
+		HttpOnly: false,
+		SameSite: http.SameSiteLaxMode,
+	})
+	// Redirect back
+	referer := r.Header.Get("Referer")
+	if referer == "" {
+		referer = "/"
+	}
+	http.Redirect(w, r, referer, http.StatusSeeOther)
+}
 
 func (h *Handler) CreateHTMX(w http.ResponseWriter, r *http.Request) {
 	req := models.PasteCreateRequest{
