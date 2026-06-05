@@ -59,7 +59,7 @@ Snip is a lightweight, self-hosted platform for sharing code snippets, text, and
 - REST API with API tokens
 - Prometheus metrics at `/metrics`
 - Health check at `/healthz`
-- i18n: English and Chinese
+- i18n: English, Chinese, Japanese, French, German
 - Dark & light themes
 - Single binary, zero deps
 - SQLite (WAL mode)
