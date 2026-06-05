@@ -171,6 +171,46 @@
         });
     });
 
+    // ---- Theme Toggle ----
+    window.toggleTheme = function() {
+        var html = document.documentElement;
+        var isLight = html.classList.contains('light');
+        if (isLight) {
+            html.classList.remove('light');
+            html.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+            var hljs = document.getElementById('hljs-css');
+            if (hljs) hljs.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css';
+        } else {
+            html.classList.remove('dark');
+            html.classList.add('light');
+            localStorage.setItem('theme', 'light');
+            var hljs2 = document.getElementById('hljs-css');
+            if (hljs2) hljs2.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+        }
+    };
+
+    // ---- Image Paste Support ----
+    if (textarea) {
+        textarea.addEventListener('paste', function(e) {
+            var items = e.clipboardData ? e.clipboardData.items : null;
+            if (!items) return;
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    e.preventDefault();
+                    var blob = items[i].getAsFile();
+                    var reader = new FileReader();
+                    reader.onload = function(ev) {
+                        textarea.value = '[Image: ' + blob.name + ']\n' + ev.target.result;
+                        showToast('Image pasted as data URL');
+                    };
+                    reader.readAsDataURL(blob);
+                    return;
+                }
+            }
+        });
+    }
+
     // ---- Hit Counter ----
     // Animate stat values on settings page
     document.querySelectorAll('.stat-value').forEach(function(el) {

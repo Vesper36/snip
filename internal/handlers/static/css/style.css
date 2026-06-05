@@ -8,6 +8,12 @@
     --shadow: 0 4px 24px rgba(0,0,0,0.3); --shadow-lg: 0 8px 40px rgba(0,0,0,0.4);
     --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+html.light {
+    --bg: #f8fafc; --bg-card: #ffffff; --bg-hover: #f1f5f9; --bg-input: #ffffff;
+    --border: #e2e8f0; --text: #0f172a; --text-muted: #64748b; --text-dim: #94a3b8;
+    --accent: #2563eb; --accent-hover: #1d4ed8; --accent-bg: rgba(37,99,235,0.06);
+    --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+}
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; scroll-behavior: smooth; }
 body {
@@ -39,6 +45,9 @@ code { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', m
 .nav-links a:hover::after { width: 100%; }
 .lang-switch { background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-muted); padding: 0.3rem 0.6rem; font-size: 0.75rem; cursor: pointer; outline: none; transition: border-color var(--transition); }
 .lang-switch:focus { border-color: var(--accent); }
+
+.theme-toggle { background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-muted); padding: 0.35rem 0.55rem; cursor: pointer; display: inline-flex; align-items: center; transition: all var(--transition); }
+.theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
 
 /* Mobile Nav */
 .nav-toggle { display: none; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.5rem; }

@@ -20,10 +20,20 @@
     <meta name="twitter:title" content="Snip - {{call .T "hero_title"}}">
     <meta name="twitter:description" content="{{call .T "hero_subtitle"}}">
 
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <link rel="stylesheet" href="/static/css/style.css" id="theme-css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
+        // Theme initialization (runs before paint to avoid flash)
+        (function() {
+            var t = localStorage.getItem('theme') || 'dark';
+            if (t === 'light') {
+                document.documentElement.classList.add('light');
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
 </head>
 <body>
     <nav class="nav">
@@ -40,6 +50,9 @@
                 <a href="/my">{{call .T "nav_browse"}}</a>
                 <a href="/settings">{{call .T "nav_settings"}}</a>
                 <a href="https://github.com/vesper/snip" target="_blank">{{call .T "nav_github"}}</a>
+                <button onclick="toggleTheme()" class="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
+                    <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </button>
                 <select onchange="location.href='/lang?lang='+this.value" class="lang-switch">
                     {{range .SupportedLangs}}<option value="{{.}}" {{if eq $.Lang .}}selected{{end}}>{{index $.LangLabels .}}</option>{{end}}
                 </select>
