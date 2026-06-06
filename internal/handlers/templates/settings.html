@@ -65,8 +65,15 @@
         <div class="api-row"><span class="method get">GET</span><code>/api/v1/pastes</code><span>List pastes</span></div>
         <div class="api-row"><span class="method get">GET</span><code>/api/v1/pastes/{slug}</code><span>Get a paste</span></div>
         <div class="api-row"><span class="method del">DELETE</span><code>/api/v1/pastes/{slug}</code><span>Delete a paste</span></div>
+        <div class="api-row"><span class="method get">GET</span><code>/api/v1/pastes/{slug}/raw</code><span>Raw content</span></div>
         <div class="api-row"><span class="method get">GET</span><code>/api/v1/search?q=</code><span>Search pastes</span></div>
         <div class="api-row"><span class="method get">GET</span><code>/api/v1/stats</code><span>Get stats</span></div>
+        <div class="api-row"><span class="method get">GET</span><code>/healthz</code><span>Health check</span></div>
+        <div class="api-row"><span class="method get">GET</span><code>/metrics</code><span>Prometheus metrics</span></div>
+        <div class="api-row"><span class="method get">GET</span><code>/version</code><span>Version info</span></div>
+        <div class="api-row"><span class="method post">POST</span><code>/api/v1/tokens</code><span>Create API token</span></div>
+        <div class="api-row"><span class="method del">DELETE</span><code>/api/v1/tokens/{id}</code><span>Revoke API token</span></div>
+        <div class="api-row"><span class="method post">POST</span><code>/api/v1/backup</code><span>Database backup</span></div>
     </div>
 </div>
 {{end}}
