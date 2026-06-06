@@ -9,6 +9,7 @@
 
 <p align="center">
   <a href="https://snip.demo.vesper36.cc"><img src="https://img.shields.io/badge/demo-live-brightgreen?style=flat-square" alt="Live Demo"></a>
+  <a href="https://snip.docs.vesper36.cc"><img src="https://img.shields.io/badge/docs-online-blue?style=flat-square" alt="Documentation"></a>
   <a href="https://github.com/Vesper36/snip/stargazers"><img src="https://img.shields.io/github/stars/Vesper36/snip?style=flat-square" alt="Stars"></a>
   <a href="https://github.com/Vesper36/snip/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Vesper36/snip?style=flat-square" alt="License"></a>
   <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat-square&logo=go" alt="Go">
