@@ -24,13 +24,15 @@ jobs:
       - name: Build binaries
         run: |
           mkdir -p dist
+          VERSION=${{ github.ref_name }}
+          COMMIT=$(git rev-parse --short HEAD)
           for target in "linux/amd64" "linux/arm64" "darwin/amd64" "darwin/arm64" "windows/amd64"; do
             os="${target%/*}"
             arch="${target#*/}"
             ext=""
             if [ "$os" = "windows" ]; then ext=".exe"; fi
             CGO_ENABLED=0 GOOS=$os GOARCH=$arch \
-              go build -ldflags="-s -w" -o dist/snip-${os}-${arch}${ext} ./cmd/server
+              go build -ldflags="-s -w -X main.version=${VERSION} -X main.commit=${COMMIT}" -o dist/snip-${os}-${arch}${ext} ./cmd/server
           done
           ls -lh dist/
 
